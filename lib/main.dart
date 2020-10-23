@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:take_my_money/components.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'parental_gate.dart';
+import 'upgrade.dart';
+import 'components.dart';
 
 void main() {
   InAppPurchaseConnection.enablePendingPurchases();
@@ -15,53 +21,97 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  @override
+  void initState() {
+    super.initState();
+    initPlatformState();
+  }
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  Future<void> initPlatformState() async {
+    appData.isPro = false;
+
+    await Purchases.setDebugLogsEnabled(true);
+    await Purchases.setup("UcwsgaSyJjukqzwiuTIQaFqXQLhQeIlW");
+
+    PurchaserInfo purchaserInfo;
+    try {
+      purchaserInfo = await Purchases.getPurchaserInfo();
+      print(purchaserInfo.toString());
+      if (purchaserInfo.entitlements.all['all_features'] != null) {
+        appData.isPro = purchaserInfo.entitlements.all['all_features'].isActive;
+      } else {
+        appData.isPro = false;
+      }
+    } on PlatformException catch (e) {
+      print(e);
+    }
+
+    print('#### is user pro? ${appData.isPro}');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    return TopBarAgnosticNoIcon(
+      text: 'Main Title',
+      style: kSendButtonTextStyle,
+      uniqueHeroTag: 'main',
+      child: Scaffold(
+        backgroundColor: kColorPrimary,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 18.0),
+                child: Text(
+                  'Welcome',
+                  style: kSendButtonTextStyle.copyWith(fontSize: 40),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: RaisedButton(
+                    color: kColorAccent,
+                    textColor: kColorText,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Text(
+                        'Purchase a subscription',
+                        style: kSendButtonTextStyle,
+                      ),
+                    ),
+                    onPressed: () {
+                      if (appData.isPro) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => UpgradeScreen(),
+                                settings:
+                                    RouteSettings(name: 'Upgrade screen')));
+                      } else {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ParentalGate(),
+                                settings:
+                                    RouteSettings(name: 'Parental Gate')));
+                      }
+                    }),
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
       ),
     );
   }

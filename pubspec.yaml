@@ -1,7 +1,7 @@
 name: take_my_money
 description: A new Flutter application.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.2+2
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -11,6 +11,9 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.0
   in_app_purchase: ^0.3.4+12
+  url_launcher: ^5.7.7
+  rflutter_alert: ^1.1.0
+  purchases_flutter: ^1.4.0
 
 dev_dependencies:
   flutter_test:
@@ -18,3 +21,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/
